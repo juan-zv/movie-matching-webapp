@@ -1,5 +1,10 @@
 import { useState, type FormEvent } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 interface LoginProps {
   onSwitchToSignUp: () => void
@@ -28,67 +33,56 @@ export function Login({ onSwitchToSignUp }: LoginProps) {
 
   return (
     <div className="w-full max-w-md mx-auto p-6">
-      <div className="bg-white rounded-2xl shadow-xl p-8">
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-8">
-          Welcome Back
-        </h2>
-        
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-              placeholder="Enter your email"
-            />
-          </div>
-          
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-              placeholder="Enter your password"
-            />
-          </div>
-
-          {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-600">{error}</p>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-center">Welcome Back</CardTitle>
+          <CardDescription className="text-center">Sign in to continue</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                placeholder="Enter your email"
+              />
             </div>
-          )}
-          
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? 'Signing in...' : 'Sign In'}
-          </button>
-        </form>
-        
-        <p className="mt-6 text-center text-sm text-gray-600">
-          Don't have an account?{' '}
-          <button
-            onClick={onSwitchToSignUp}
-            className="text-blue-600 hover:text-blue-700 font-medium"
-          >
-            Sign up
-          </button>
-        </p>
-      </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                placeholder="Enter your password"
+              />
+            </div>
+
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            <Button type="submit" disabled={loading} className="w-full">
+              {loading ? 'Signing in...' : 'Sign In'}
+            </Button>
+          </form>
+
+          <p className="mt-6 text-center text-sm text-slate-600">
+            Don't have an account?{' '}
+            <Button type="button" variant="link" className="h-auto p-0" onClick={onSwitchToSignUp}>
+              Sign up
+            </Button>
+          </p>
+        </CardContent>
+      </Card>
     </div>
   )
 }
