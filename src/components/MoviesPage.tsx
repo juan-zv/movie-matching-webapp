@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { MovieCard } from './MovieCard'
 import { parseCSV, type Movie } from '@/lib/parseCSV'
+import { Progress } from './ui/progress'
 
 const MOVIES_PER_PAGE = 12
 
@@ -12,6 +13,7 @@ export function MoviesPage() {
   const [error, setError] = useState<string | null>(null)
   const [visibleCount, setVisibleCount] = useState(MOVIES_PER_PAGE)
   const [loadingMore, setLoadingMore] = useState(false)
+  const [loadProgress, setLoadProgress] = useState(0)
   
   const observerRef = useRef<IntersectionObserver | null>(null)
   const loadMoreRef = useCallback((node: HTMLDivElement | null) => {
@@ -40,13 +42,19 @@ export function MoviesPage() {
   useEffect(() => {
     async function fetchMovies() {
       try {
+        setLoadProgress(10)
         const response = await fetch('/tmdb_5000_movies.csv')
+        setLoadProgress(30)
         if (!response.ok) {
           throw new Error('Failed to fetch movies')
         }
+        setLoadProgress(50)
         const csvText = await response.text()
+        setLoadProgress(70)
         const parsedMovies = parseCSV(csvText)
+        setLoadProgress(90)
         setMovies(parsedMovies)
+        setLoadProgress(100)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error')
       } finally {
@@ -80,8 +88,10 @@ export function MoviesPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-slate-900"></div>
+      <div className="flex flex-col items-center justify-center gap-4 py-12">
+        <p className="text-sm font-medium text-slate-700">Loading movies...</p>
+        <Progress value={loadProgress} className="w-64" />
+        <p className="text-xs text-slate-500">{loadProgress}%</p>
       </div>
     )
   }
@@ -127,9 +137,12 @@ export function MoviesPage() {
       
       {/* Infinite scroll sentinel */}
       {visibleCount < movies.length && (
-        <div ref={loadMoreRef} className="flex items-center justify-center py-8">
+        <div ref={loadMoreRef} className="flex flex-col items-center justify-center gap-2 py-8">
           {loadingMore ? (
-            <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-slate-900"></div>
+            <>
+              <Progress value={66} className="w-32" />
+              <p className="text-xs text-slate-400">Loading more...</p>
+            </>
           ) : (
             <p className="text-sm text-slate-400">Scroll for more...</p>
           )}

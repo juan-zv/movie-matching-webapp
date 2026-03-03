@@ -5,8 +5,10 @@ import { SignUp } from './components/SignUp'
 import { Button } from './components/ui/button'
 import { Progress } from './components/ui/progress'
 import { MoviesPage } from './components/MoviesPage'
+import { ThemeProvider } from './components/theme-provider'
+import { ModeToggle } from './components/mode-toggle'
 
-export function App() {
+function AppContent() {
   const { user, loading, signOut } = useAuth()
   const [isLogin, setIsLogin] = useState(true)
   const [progress, setProgress] = useState(0)
@@ -48,12 +50,13 @@ export function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <nav className="border-b bg-white">
+    <div className="min-h-screen bg-background">
+      <nav className="border-b bg-card">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4">
-          <h1 className="text-xl font-semibold text-slate-900">Movie Matching</h1>
+          <h1 className="text-xl font-semibold text-foreground">Movie Matching</h1>
           <div className="flex items-center gap-3">
-            <span className="text-sm text-slate-600">{user.email}</span>
+            <ModeToggle />
+            <span className="text-sm text-muted-foreground">{user.email}</span>
             <Button variant="secondary" onClick={signOut}>
               Sign Out
             </Button>
@@ -64,6 +67,14 @@ export function App() {
         <MoviesPage />
       </main>
     </div>
+  )
+}
+
+export function App() {
+  return (
+    <ThemeProvider defaultTheme="system" storageKey="movie-matching-theme">
+      <AppContent />
+    </ThemeProvider>
   )
 }
 
