@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -17,7 +17,7 @@ export function Login({ onSwitchToSignUp }: LoginProps) {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError(null)
     setLoading(true)

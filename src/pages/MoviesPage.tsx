@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
-import { MovieCard } from './MovieCard'
+import { MovieCard } from '../components/MovieCard'
 import { parseCSV, type Movie } from '@/lib/parseCSV'
-import { Progress } from './ui/progress'
+import { Progress } from '../components/ui/progress'
 
 const MOVIES_PER_PAGE = 12
 

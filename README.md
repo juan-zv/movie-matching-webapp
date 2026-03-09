@@ -28,8 +28,8 @@ A React + TypeScript web application that collects user movie ratings to generat
 ## Current Implementations
 
 ### Authentication System
-- **Login Component** (`src/components/Login.tsx`) - Email/password sign-in form
-- **SignUp Component** (`src/components/SignUp.tsx`) - User registration form
+- **Login Component** (`src/pages/Login.tsx`) - Email/password sign-in form
+- **SignUp Component** (`src/pages/SignUp.tsx`) - User registration form
 - **AuthContext** (`src/contexts/AuthContext.tsx`) - React context for auth state management
 - **Supabase Client** (`src/lib/supabase.ts`) - Configured Supabase connection
 
@@ -37,7 +37,7 @@ A React + TypeScript web application that collects user movie ratings to generat
 - **CSV Parser** (`src/lib/parseCSV.ts`) - Parses TMDB 5000 movies dataset with:
   - Proper handling of quoted fields and nested JSON
   - Extracts: id, title, overview, release_date, vote_average, runtime, genres, tagline
-- **MoviesPage** (`src/components/MoviesPage.tsx`) - Main movies display featuring:
+- **MoviesPage** (`src/pages/MoviesPage.tsx`) - Main movies display featuring:
   - Fetches and parses `/tmdb_5000_movies.csv` on mount
   - Responsive grid layout (1/2/3 columns)
   - **Infinite scroll** using Intersection Observer API
@@ -69,16 +69,17 @@ src/
 │   │   ├── input.tsx
 │   │   ├── label.tsx
 │   │   └── progress.tsx
-│   ├── Login.tsx
-│   ├── SignUp.tsx
-│   ├── MovieCard.tsx
-│   └── MoviesPage.tsx
+│   └── MovieCard.tsx
 ├── contexts/
 │   └── AuthContext.tsx
 ├── lib/
 │   ├── parseCSV.ts
 │   ├── supabase.ts
 │   └── utils.ts
+├── pages/
+│   ├── Login.tsx
+│   ├── MoviesPage.tsx
+│   └── SignUp.tsx
 ├── App.tsx
 ├── main.tsx
 └── index.css
