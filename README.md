@@ -1,8 +1,20 @@
 # Movie Matching Webapp
 
-A React + TypeScript web application that collects user movie ratings to generate personalized, algorithm-driven recommendations for films they haven't seen, while also supporting pair-based matching that computes joint preference profiles to suggest movies optimized for two users watching together.
+Movie Matching is a React + TypeScript app for browsing the TMDB 5000 dataset, rating movies, and managing user access with Supabase authentication.
+
+[A React + TypeScript web application that collects user movie ratings to generate personalized, algorithm-driven recommendations for films they haven't seen, while also supporting pair-based matching that computes joint preference profiles to suggest movies optimized for two users watching together.]
 
 ## Tech Stack
+
+- React 19
+- TypeScript 5.9
+- Vite 7
+- Tailwind CSS 4
+- shadcn/ui + Radix UI primitives
+- Supabase (Auth)
+- pnpm
+
+
 
 ### Frontend
 - **React 19** - UI library with hooks-based architecture
@@ -25,82 +37,119 @@ A React + TypeScript web application that collects user movie ratings to generat
 ### Package Management
 - **pnpm** - Fast, disk space efficient package manager with workspace support
 
+
 ## Current Implementations
 
-### Authentication System
-- **Login Component** (`src/pages/Login.tsx`) - Email/password sign-in form
-- **SignUp Component** (`src/pages/SignUp.tsx`) - User registration form
-- **AuthContext** (`src/contexts/AuthContext.tsx`) - React context for auth state management
-- **Supabase Client** (`src/lib/supabase.ts`) - Configured Supabase connection
+### Authentication and Routing
+
+- Email/password login and sign up flows with Supabase.
+- Session-aware route protection for:
+  - `/login`
+  - `/signup`
+  - `/`
+  - `/profile`
+- Shared auth state and actions through `AuthContext`.
+- Initial loading screen with progress indicator while auth state is restored.
+
+### Theme System
+
+- Light, dark, and system theme support.
+- Theme selection persisted in localStorage (`movie-matching-theme`).
+- Theme toggle available on auth pages and authenticated layout.
 
 ### Movie Catalog
-- **CSV Parser** (`src/lib/parseCSV.ts`) - Parses TMDB 5000 movies dataset with:
-  - Proper handling of quoted fields and nested JSON
-  - Extracts: id, title, overview, release_date, vote_average, runtime, genres, tagline
-- **MoviesPage** (`src/pages/MoviesPage.tsx`) - Main movies display featuring:
-  - Fetches and parses `/tmdb_5000_movies.csv` on mount
-  - Responsive grid layout (1/2/3 columns)
-  - **Infinite scroll** using Intersection Observer API
-  - Loads 12 movies at a time for smooth performance
-  - Loading states and error handling
 
-### Movie Rating System
-- **MovieCard** (`src/components/MovieCard.tsx`) - Individual movie display with:
-  - Title, year, runtime, TMDB rating
-  - Tagline and overview (truncated)
-  - Genre tags
-  - **Interactive 5-star rating** with hover states
-- **4-Star Tracking** - Movies rated exactly 4 stars are tracked and displayed in a highlighted section
+- Loads and parses `/tmdb_5000_movies.csv` on page load.
+- Custom CSV parser handles quoted fields and embedded JSON-like content.
+- Displays key metadata per movie:
+  - title
+  - release year
+  - runtime
+  - TMDB average score
+  - tagline
+  - overview
+  - top genres
 
-### App Shell
-- **Progress Loader** - Animated progress bar during initial auth loading
-- **Navigation** - Header with app title, user email, and sign-out button
-- **Responsive Layout** - Max-width container with proper padding
+### Ratings UX
+
+- Interactive 5-star rating widget on each movie card.
+- In-memory rating state keyed by movie ID.
+- Highlight section for movies rated exactly 4 stars.
+
+### Feed and Performance Behavior
+
+- Responsive movie grid.
+- Infinite scroll implemented with Intersection Observer.
+- Progressive loading UX for:
+  - initial movie fetch/parse
+  - loading additional movie cards
+
+### Profile Page
+
+- Dedicated `/profile` route.
+- Profile card and liked-movies history UI.
+- Currently uses placeholder profile data structure for demo purposes.
 
 ## Project Structure
 
-```
+```text
 src/
-├── components/
-│   ├── ui/              # shadcn/ui components
-│   │   ├── alert.tsx
-│   │   ├── button.tsx
-│   │   ├── card.tsx
-│   │   ├── input.tsx
-│   │   ├── label.tsx
-│   │   └── progress.tsx
-│   └── MovieCard.tsx
-├── contexts/
-│   └── AuthContext.tsx
-├── lib/
-│   ├── parseCSV.ts
-│   ├── supabase.ts
-│   └── utils.ts
-├── pages/
-│   ├── Login.tsx
-│   ├── MoviesPage.tsx
-│   └── SignUp.tsx
-├── App.tsx
-├── main.tsx
-└── index.css
+  components/
+    mode-toggle.tsx
+    MovieCard.tsx
+    theme-provider.tsx
+    ui/
+      alert.tsx
+      button.tsx
+      card.tsx
+      dropdown-menu.tsx
+      input.tsx
+      label.tsx
+      progress.tsx
+  contexts/
+    AuthContext.tsx
+  lib/
+    parseCSV.ts
+    supabase.ts
+    utils.ts
+  pages/
+    Login.tsx
+    MoviesPage.tsx
+    ProfilePage.tsx
+    SignUp.tsx
+  App.tsx
+  index.css
+  main.tsx
 ```
+
+## Environment Variables
+
+Create a `.env` file in the project root with:
+
+```bash
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY=your_supabase_anon_or_publishable_key
+```
+
+The app throws an error on startup if these values are missing.
 
 ## Getting Started
 
 ```bash
-# Install dependencies
 pnpm install
-
-# Start development server
 pnpm dev
-
-# Build for production
-pnpm build
-
-# Preview production build
-pnpm preview
 ```
 
-## Recommendation Work
+## Available Scripts
 
-*To be implemented*
+```bash
+pnpm dev      # Run Vite dev server
+pnpm build    # Type-check and build for production
+pnpm preview  # Preview production build locally
+pnpm lint     # Run ESLint
+```
+
+## Notes
+
+- Ratings and 4-star tracking are currently client-side only and reset on refresh.
+- Recommendation and pair-matching logic are not implemented yet.
