@@ -12,7 +12,7 @@ import { ThemeProvider } from '@/components/theme-provider'
 import { ModeToggle } from '@/components/mode-toggle'
 
 function AppContent() {
-  const { user, loading, signOut } = useAuth()
+  const { user, profile, loading, signOut } = useAuth()
   const [progress, setProgress] = useState(0)
   const navigate = useNavigate()
 
@@ -45,10 +45,12 @@ function AppContent() {
       <Route
         path="/login"
         element={
-          user ? (
+          user && profile?.onboarding_completed ? (
             <Navigate to="/" replace />
+          ) : user && !profile?.onboarding_completed ? (
+            <Navigate to="/signup" replace />
           ) : (
-            <div className="flex min-h-screen flex-col items-center justify-center bg-background text-foreground relative">
+            <div className="flex min-h-screen flex-col items-center justify-center bg-background text-foreground relative py-8">
               <div className="absolute top-4 right-4">
                 <ModeToggle />
               </div>
@@ -60,10 +62,10 @@ function AppContent() {
       <Route
         path="/signup"
         element={
-          user ? (
+          user && profile?.onboarding_completed ? (
             <Navigate to="/" replace />
           ) : (
-            <div className="flex min-h-screen flex-col items-center justify-center bg-background text-foreground relative">
+            <div className="flex min-h-screen flex-col items-center justify-center bg-background text-foreground relative py-8">
               <div className="absolute top-4 right-4">
                 <ModeToggle />
               </div>
@@ -77,6 +79,8 @@ function AppContent() {
         element={
           !user ? (
             <Navigate to="/login" replace />
+          ) : !profile?.onboarding_completed ? (
+            <Navigate to="/signup" replace />
           ) : (
             <div className="min-h-screen bg-background">
               <nav className="border-b bg-card">
@@ -105,6 +109,8 @@ function AppContent() {
         element={
           !user ? (
             <Navigate to="/login" replace />
+          ) : !profile?.onboarding_completed ? (
+            <Navigate to="/signup" replace />
           ) : (
             <div className="min-h-screen bg-background">
               <nav className="border-b bg-card">
@@ -133,6 +139,8 @@ function AppContent() {
         element={
           !user ? (
             <Navigate to="/login" replace />
+          ) : !profile?.onboarding_completed ? (
+            <Navigate to="/signup" replace />
           ) : (
             <div className="min-h-screen bg-background">
               <nav className="border-b bg-card">
