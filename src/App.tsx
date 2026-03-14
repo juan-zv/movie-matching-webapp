@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { MoviesPage } from '@/pages/MoviesPage'
 import { ProfilePage } from '@/pages/ProfilePage'
+import { MatchingPage } from '@/pages/MatchingPage'
 import { ThemeProvider } from '@/components/theme-provider'
 import { ModeToggle } from '@/components/mode-toggle'
 
@@ -122,6 +123,34 @@ function AppContent() {
               </nav>
               <main className="mx-auto w-full max-w-6xl px-4 py-8">
                 <ProfilePage />
+              </main>
+            </div>
+          )
+        }
+      />
+      <Route
+        path="/matching"
+        element={
+          !user ? (
+            <Navigate to="/login" replace />
+          ) : (
+            <div className="min-h-screen bg-background">
+              <nav className="border-b bg-card">
+                <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4">
+                  <h1 className="text-xl font-semibold text-foreground cursor-pointer" onClick={() => navigate('/')}>Movie Matching</h1>
+                  <div className="flex items-center gap-3">
+                    <ModeToggle />
+                    <Button variant="ghost" className="text-sm text-muted-foreground" onClick={() => navigate('/profile')}>
+                      {user.email}
+                    </Button>
+                    <Button variant="secondary" onClick={signOut}>
+                      Sign Out
+                    </Button>
+                  </div>
+                </div>
+              </nav>
+              <main className="mx-auto w-full max-w-6xl px-4 py-8">
+                <MatchingPage />
               </main>
             </div>
           )
