@@ -43,7 +43,7 @@ export function MoviesPage() {
     async function fetchMovies() {
       try {
         setLoadProgress(10)
-        const response = await fetch('/tmdb_5000_movies.csv')
+        const response = await fetch('https://imqqdsjzwxmevdxacnok.supabase.co/storage/v1/object/public/database/tmdb_5000_movies.csv')
         setLoadProgress(30)
         if (!response.ok) {
           throw new Error('Failed to fetch movies')

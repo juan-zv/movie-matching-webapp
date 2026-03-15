@@ -29,7 +29,6 @@ const step1Schema = z.object({
 const step2Schema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
   ageRange: z.enum(["18-24", "25-32", "32-45", "45-60", "60+"], { message: "Select a valid age range" }),
-  avatarUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
 })
 
 type Step1Data = z.infer<typeof step1Schema>
@@ -45,6 +44,7 @@ export function SignUp({ onSwitchToLogin }: { onSwitchToLogin: () => void }) {
   const [loading, setLoading] = useState(false)
   const [movies, setMovies] = useState<Movie[]>([])
   const [ratings, setRatings] = useState<Record<number, number>>({})
+  const [avatarFile, setAvatarFile] = useState<File | null>(null)
 
   // Forms
   const form1 = useForm<Step1Data>({ resolver: zodResolver(step1Schema) })
@@ -76,7 +76,7 @@ export function SignUp({ onSwitchToLogin }: { onSwitchToLogin: () => void }) {
       // Load top movies
       async function fetchMovies() {
         try {
-          const response = await fetch('/tmdb_5000_movies.csv')
+          const response = await fetch('https://imqqdsjzwxmevdxacnok.supabase.co/storage/v1/object/public/database/tmdb_5000_movies.csv')
           const csvText = await response.text()
           const parsedMovies = parseCSV(csvText)
           
@@ -114,11 +114,33 @@ export function SignUp({ onSwitchToLogin }: { onSwitchToLogin: () => void }) {
   const onSubmitStep2 = async (data: Step2Data) => {
     if (!user) return
     setLoading(true)
+
+    let finalAvatarUrl: string | null = null;
+    if (avatarFile) {
+      const fileExt = avatarFile.name.split('.').pop()
+      const fileName = `${user.id}-${Math.random()}.${fileExt}`
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('pictures')
+        .upload(fileName, avatarFile)
+
+      if (uploadError) {
+        form2.setError('root', { message: `Image upload failed: ${uploadError.message}` })
+        setLoading(false)
+        return
+      }
+      
+      const { data: publicUrlData } = supabase.storage
+        .from('pictures')
+        .getPublicUrl(fileName)
+        
+      finalAvatarUrl = publicUrlData.publicUrl
+    }
+
     const { error } = await supabase.from('profiles').upsert({
       user_id: user.id,
       username: data.username,
       age_range: data.ageRange,
-      avatarl_url: data.avatarUrl || null,
+      avatarl_url: finalAvatarUrl,
       onboarding_step: 2
     })
     
@@ -271,11 +293,17 @@ export function SignUp({ onSwitchToLogin }: { onSwitchToLogin: () => void }) {
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="avatarUrl">Profile Image URL (Optional)</Label>
-                <Input id="avatarUrl" {...form2.register('avatarUrl')} placeholder="https://example.com/avatar.jpg" />
-                {form2.formState.errors.avatarUrl && (
-                  <p className="text-xs text-red-500">{form2.formState.errors.avatarUrl.message}</p>
-                )}
+                <Label htmlFor="avatarFile">Profile Image (Optional)</Label>
+                <Input 
+                  id="avatarFile" 
+                  type="file" 
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) setAvatarFile(file);
+                    else setAvatarFile(null);
+                  }}
+                />
               </div>
               
               {form2.formState.errors.root && (

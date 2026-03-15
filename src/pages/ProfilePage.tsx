@@ -10,12 +10,18 @@ export function ProfilePage() {
     ? `${user.user_metadata.first_name || ''} ${user.user_metadata.last_name || ''}`.trim()
     : 'Unknown User'
 
+  // Safely parse primary_genres if it's an array
+  let profilePicUrl = profile?.avatarl_url || null;
+  // If it's not a full URL (like an http prefix), assume it's just the filename in the bucket
+  if (profilePicUrl && !profilePicUrl.startsWith('http')) {
+    profilePicUrl = `https://imqqdsjzwxmevdxacnok.supabase.co/storage/v1/object/public/pictures/${profilePicUrl}`;
+  }
+
   const profileInfo = {
     username: profile?.username || 'No username set',
     ageRange: profile?.age_range || 'Age not specified',
     email: user?.email || 'user@example.com',
-    profilePicUrl: profile?.avatarl_url || null,
-    // Safely parse primary_genres if it's an array
+    profilePicUrl: profilePicUrl,
     topGenres: Array.isArray(profile?.primary_genres) ? profile.primary_genres : [],
     // Still placeholder for liked history until we have a ratings table
     likedMoviesHistory: [
