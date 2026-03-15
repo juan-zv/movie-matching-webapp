@@ -1,6 +1,6 @@
 import { useAuth } from '../contexts/AuthContext'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { User } from 'lucide-react'
+import { IconUser } from '@tabler/icons-react'
 
 export function ProfilePage() {
   const { user, profile } = useAuth()
@@ -39,7 +39,7 @@ export function ProfilePage() {
                 className="w-full h-full object-cover"
               />
             ) : (
-              <User className="w-12 h-12 text-muted-foreground" />
+              <IconUser className="w-12 h-12 text-muted-foreground" />
             )}
           </div>
           <div className="text-center sm:text-left space-y-2 grow">
