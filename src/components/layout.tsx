@@ -5,7 +5,8 @@ import { ModeToggle } from '@/components/mode-toggle'
 import { Button } from '@/components/ui/button'
 import { IconHome, IconCards, IconUser, IconLogout } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
-import logo from '@/assets/android-chrome-192x192.png'
+
+const logo = '/android-chrome-192x192.png'
 
 export function Layout() {
   const { user, signOut } = useAuth()
