@@ -1,7 +1,8 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
-import { MovieCard } from '../components/MovieCard'
+import { MovieCard } from '@/components/MovieCard'
+import { MovieCardSkeleton } from '@/components/skeletons/MovieCardSkeleton'
 import { parseCSV, type Movie } from '@/lib/parseCSV'
-import { Progress } from '../components/ui/progress'
+import { Progress } from '@/components/ui/progress'
 
 const MOVIES_PER_PAGE = 12
 
@@ -88,10 +89,16 @@ export function MoviesPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center gap-4 py-12">
-        <p className="text-sm font-medium text-slate-700">Loading movies...</p>
-        <Progress value={loadProgress} className="w-64" />
-        <p className="text-xs text-slate-500">{loadProgress}%</p>
+      <div className="space-y-8">
+        <div className="flex flex-col items-center justify-center gap-4 py-6">
+          <p className="text-sm font-medium text-slate-700">Loading movies...</p>
+          <Progress value={loadProgress} className="w-64" />
+        </div>
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: MOVIES_PER_PAGE }).map((_, i) => (
+            <MovieCardSkeleton key={i} />
+          ))}
+        </div>
       </div>
     )
   }
