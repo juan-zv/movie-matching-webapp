@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from './ui/card'
-import type { Movie } from '@/lib/parseCSV'
+import type { TMDBMovie } from '@/lib/tmdb'
+import { getImageUrl } from '@/lib/tmdb'
 
 interface MovieCardProps {
-  movie: Movie
+  movie: TMDBMovie
   userRating: number | null
   onRate: (movieId: number, rating: number) => void
 }
@@ -48,34 +49,28 @@ export function MovieCard({ movie, userRating, onRate }: MovieCardProps) {
   const year = movie.release_date ? new Date(movie.release_date).getFullYear() : null
   
   return (
-    <Card className="h-full">
+    <Card className="h-full flex flex-col overflow-hidden">
+      {movie.poster_path && (
+        <div className="w-full aspect-[2/3] bg-slate-100 overflow-hidden">
+          <img 
+            src={getImageUrl(movie.poster_path)} 
+            alt={`Poster for ${movie.title}`}
+            className="w-full h-full object-cover transition-transform hover:scale-105"
+            loading="lazy"
+          />
+        </div>
+      )}
       <CardHeader>
         <CardTitle className="line-clamp-2">{movie.title}</CardTitle>
         <CardDescription>
           {year && <span>{year}</span>}
-          {movie.runtime > 0 && <span className="ml-2">{movie.runtime} min</span>}
           {movie.vote_average > 0 && (
             <span className="ml-2">⭐ {movie.vote_average.toFixed(1)}</span>
           )}
         </CardDescription>
       </CardHeader>
       <CardContent className="flex-1">
-        {movie.tagline && (
-          <p className="mb-2 text-sm italic text-slate-500">"{movie.tagline}"</p>
-        )}
         <p className="line-clamp-4 text-sm text-slate-600">{movie.overview}</p>
-        {movie.genres.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-1">
-            {movie.genres.slice(0, 3).map((genre) => (
-              <span
-                key={genre.id}
-                className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600"
-              >
-                {genre.name}
-              </span>
-            ))}
-          </div>
-        )}
       </CardContent>
       <CardFooter className="flex items-center justify-between">
         <span className="text-sm text-slate-500">Your rating:</span>

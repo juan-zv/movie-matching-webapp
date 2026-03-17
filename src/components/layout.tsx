@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { ModeToggle } from '@/components/mode-toggle'
 import { Button } from '@/components/ui/button'
-import { IconHome, IconCards, IconUser, IconLogout } from '@tabler/icons-react'
+import { IconHome, IconSearch, IconUser, IconLogout } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
 
 const logo = '/android-chrome-192x192.png'
@@ -23,8 +23,8 @@ export function Layout() {
   }, [])
 
   const navItems = [
-    { label: 'Home', path: '/', icon: <IconHome className="w-6 h-6" /> },
-    { label: 'Matching', path: '/matching', icon: <IconCards className="w-6 h-6" /> },
+    { label: 'Swipe', path: '/', icon: <IconHome className="w-6 h-6" /> },
+    { label: 'Search', path: '/search', icon: <IconSearch className="w-6 h-6" /> },
     { label: 'Profile', path: '/profile', icon: <IconUser className="w-6 h-6" /> },
   ]
 

@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
-import { parseCSV, type Movie } from '@/lib/parseCSV'
+import { usePopularMovies } from '@/hooks/useMovies'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { MovieCard } from '@/components/MovieCard'
@@ -14,27 +14,10 @@ interface Step3RateMoviesProps {
 export function Step3RateMovies({ onComplete }: Step3RateMoviesProps) {
   const { user } = useAuth()
   const [loading, setLoading] = useState(false)
-  const [movies, setMovies] = useState<Movie[]>([])
   const [ratings, setRatings] = useState<Record<number, number>>({})
-
-  useEffect(() => {
-    async function fetchMovies() {
-      try {
-        const response = await fetch('https://imqqdsjzwxmevdxacnok.supabase.co/storage/v1/object/public/database/tmdb_5000_movies.csv')
-        const csvText = await response.text()
-        const parsedMovies = parseCSV(csvText)
-        
-        // Filter popular and highly rated
-        const popular = parsedMovies.filter(m => m.vote_count > 2000)
-        popular.sort((a, b) => b.vote_average - a.vote_average)
-        
-        setMovies(popular.slice(0, 10))
-      } catch (e) {
-        console.error("Error loading movies", e)
-      }
-    }
-    fetchMovies()
-  }, [])
+  
+  const { data, isLoading } = usePopularMovies()
+  const movies = data?.pages[0]?.results?.slice(0, 10) || []
 
   const handleRate = (movieId: number, rating: number) => {
     setRatings(prev => ({ ...prev, [movieId]: rating }))
@@ -73,7 +56,7 @@ export function Step3RateMovies({ onComplete }: Step3RateMoviesProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {movies.length === 0 ? (
+        {isLoading ? (
           <div className="flex flex-col items-center justify-center py-6 gap-4 w-full">
             <p className="text-sm font-medium text-foreground mb-4">Loading top movies...</p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 w-full">
@@ -84,7 +67,7 @@ export function Step3RateMovies({ onComplete }: Step3RateMoviesProps) {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-            {movies.map(movie => (
+            {movies.map((movie: import('@/lib/tmdb').TMDBMovie) => (
               <MovieCard 
                 key={movie.id} 
                 movie={movie} 

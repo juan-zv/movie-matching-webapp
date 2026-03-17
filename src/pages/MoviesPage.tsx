@@ -1,101 +1,72 @@
-import { useEffect, useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { MovieCard } from '@/components/MovieCard'
 import { MovieCardSkeleton } from '@/components/skeletons/MovieCardSkeleton'
-import { parseCSV, type Movie } from '@/lib/parseCSV'
 import { Progress } from '@/components/ui/progress'
-
-const MOVIES_PER_PAGE = 12
+import { Input } from '@/components/ui/input'
+import { usePopularMovies, useSearchMovies } from '@/hooks/useMovies'
+import { useDebounce } from '@/hooks/useDebounce'
+import type { TMDBMovie } from '@/lib/tmdb'
 
 export function MoviesPage() {
-  const [movies, setMovies] = useState<Movie[]>([])
+  const [searchTerm, setSearchTerm] = useState('')
+  const debouncedSearchTerm = useDebounce(searchTerm, 500)
+
+  const isSearching = debouncedSearchTerm.length > 0
+  const popularQuery = usePopularMovies()
+  const searchQuery = useSearchMovies(debouncedSearchTerm)
+
+  const currentQuery = isSearching ? searchQuery : popularQuery
+  const { data, isLoading, isError, error, fetchNextPage, hasNextPage, isFetchingNextPage } = currentQuery
+
   const [ratings, setRatings] = useState<Record<number, number>>({})
-  const [fourStarMovies, setFourStarMovies] = useState<Movie[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [visibleCount, setVisibleCount] = useState(MOVIES_PER_PAGE)
-  const [loadingMore, setLoadingMore] = useState(false)
-  const [loadProgress, setLoadProgress] = useState(0)
-  
+  const [fourStarMovies, setFourStarMovies] = useState<TMDBMovie[]>([])
+
   const observerRef = useRef<IntersectionObserver | null>(null)
+  
   const loadMoreRef = useCallback((node: HTMLDivElement | null) => {
-    if (loading) return
+    if (isFetchingNextPage || !hasNextPage) return
     
-    if (observerRef.current) {
-      observerRef.current.disconnect()
-    }
+    if (observerRef.current) observerRef.current.disconnect()
     
     observerRef.current = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting && visibleCount < movies.length) {
-        setLoadingMore(true)
-        // Simulate a small delay for smoother UX
-        setTimeout(() => {
-          setVisibleCount((prev) => Math.min(prev + MOVIES_PER_PAGE, movies.length))
-          setLoadingMore(false)
-        }, 300)
+      if (entries[0].isIntersecting && hasNextPage) {
+        fetchNextPage()
       }
     }, { threshold: 0.1 })
     
-    if (node) {
-      observerRef.current.observe(node)
-    }
-  }, [loading, visibleCount, movies.length])
+    if (node) observerRef.current.observe(node)
+  }, [isFetchingNextPage, hasNextPage, fetchNextPage])
 
-  useEffect(() => {
-    async function fetchMovies() {
-      try {
-        setLoadProgress(10)
-        const response = await fetch('https://imqqdsjzwxmevdxacnok.supabase.co/storage/v1/object/public/database/tmdb_5000_movies.csv')
-        setLoadProgress(30)
-        if (!response.ok) {
-          throw new Error('Failed to fetch movies')
-        }
-        setLoadProgress(50)
-        const csvText = await response.text()
-        setLoadProgress(70)
-        const parsedMovies = parseCSV(csvText)
-        setLoadProgress(90)
-        setMovies(parsedMovies)
-        setLoadProgress(100)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchMovies()
-  }, [])
+  const allMovies = data?.pages.flatMap((page) => page.results) || []
 
   const handleRate = (movieId: number, rating: number) => {
     setRatings((prev) => {
       const newRatings = { ...prev, [movieId]: rating }
       
-      // Update four-star movies list
-      const movie = movies.find((m) => m.id === movieId)
+      const movie = allMovies.find((m) => m.id === movieId)
       if (rating === 4 && movie) {
-        setFourStarMovies((prev) => {
-          if (!prev.find((m) => m.id === movieId)) {
-            return [...prev, movie]
+        setFourStarMovies((prevM) => {
+          if (!prevM.find((m) => m.id === movieId)) {
+            return [...prevM, movie]
           }
-          return prev
+          return prevM
         })
       } else {
-        setFourStarMovies((prev) => prev.filter((m) => m.id !== movieId))
+        setFourStarMovies((prevM) => prevM.filter((m) => m.id !== movieId))
       }
       
       return newRatings
     })
   }
 
-  if (loading) {
+  if (isLoading && !data) {
     return (
       <div className="space-y-8">
         <div className="flex flex-col items-center justify-center gap-4 py-6">
-          <p className="text-sm font-medium text-slate-700">Loading movies...</p>
-          <Progress value={loadProgress} className="w-64" />
+          <p className="text-sm font-medium text-slate-700">Loading movies from TMDB...</p>
         </div>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: MOVIES_PER_PAGE }).map((_, i) => (
+          {Array.from({ length: 12 }).map((_, i) => (
             <MovieCardSkeleton key={i} />
           ))}
         </div>
@@ -103,17 +74,38 @@ export function MoviesPage() {
     )
   }
 
-  if (error) {
+  if (isError) {
     return (
       <div className="rounded-lg bg-red-50 p-4 text-red-600">
-        Error loading movies: {error}
+        Error loading movies: {error instanceof Error ? error.message : "Unknown error"}
       </div>
     )
   }
 
   return (
-    <div className="space-y-8">
-      {fourStarMovies.length > 0 && (
+    <div className="space-y-8 pb-24">
+      <div className="relative max-w-xl mx-auto">
+        <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+          <svg className="w-5 h-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+        <Input
+          type="text"
+          className="pl-10 h-12 text-lg shadow-sm"
+          placeholder="Search for movies..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+
+      {isSearching && allMovies.length === 0 && !isLoading && (
+        <div className="text-center py-12 text-muted-foreground">
+          No movies found for "{searchTerm}"
+        </div>
+      )}
+
+      {fourStarMovies.length > 0 && !isSearching && (
         <div className="rounded-lg bg-yellow-50 p-4">
           <h2 className="mb-2 font-semibold text-yellow-800">
             ⭐ Your 4-Star Rated Movies ({fourStarMovies.length})
@@ -132,9 +124,9 @@ export function MoviesPage() {
       )}
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {movies.slice(0, visibleCount).map((movie) => (
+        {allMovies.map((movie, idx) => (
           <MovieCard
-            key={movie.id}
+            key={`${movie.id}-${idx}`}
             movie={movie}
             userRating={ratings[movie.id] ?? null}
             onRate={handleRate}
@@ -143,22 +135,18 @@ export function MoviesPage() {
       </div>
       
       {/* Infinite scroll sentinel */}
-      {visibleCount < movies.length && (
+      {hasNextPage && (
         <div ref={loadMoreRef} className="flex flex-col items-center justify-center gap-2 py-8">
-          {loadingMore ? (
+          {isFetchingNextPage ? (
             <>
               <Progress value={66} className="w-32" />
-              <p className="text-xs text-slate-400">Loading more...</p>
+              <p className="text-sm text-slate-500">Loading more movies...</p>
             </>
           ) : (
-            <p className="text-sm text-slate-400">Scroll for more...</p>
+            <div className="h-10 w-full" />
           )}
         </div>
       )}
-      
-      <p className="text-center text-sm text-slate-500">
-        Showing {Math.min(visibleCount, movies.length)} of {movies.length} movies
-      </p>
     </div>
   )
 }

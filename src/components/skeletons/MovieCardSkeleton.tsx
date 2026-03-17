@@ -3,12 +3,11 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 export function MovieCardSkeleton() {
   return (
-    <Card className="h-full flex flex-col">
+    <Card className="h-full flex flex-col overflow-hidden">
+      <Skeleton className="w-full aspect-[2/3] rounded-none" />
       <CardHeader>
         <CardTitle><Skeleton className="h-6 w-3/4" /></CardTitle>
         <CardDescription className="flex gap-2 mt-2">
-          <Skeleton className="h-4 w-12" />
-          <Skeleton className="h-4 w-16" />
           <Skeleton className="h-4 w-12" />
         </CardDescription>
       </CardHeader>
@@ -16,10 +15,6 @@ export function MovieCardSkeleton() {
         <Skeleton className="h-4 w-full" />
         <Skeleton className="h-4 w-full" />
         <Skeleton className="h-4 w-5/6" />
-        <div className="mt-3 flex flex-wrap gap-1">
-          <Skeleton className="h-5 w-16 rounded-full" />
-          <Skeleton className="h-5 w-20 rounded-full" />
-        </div>
       </CardContent>
       <CardFooter className="flex items-center justify-between">
         <Skeleton className="h-4 w-20" />

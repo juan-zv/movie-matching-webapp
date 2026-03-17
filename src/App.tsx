@@ -12,7 +12,7 @@ const Login = lazy(() => import('@/pages/Login').then(m => ({ default: m.Login }
 const SignUp = lazy(() => import('@/pages/SignUp').then(m => ({ default: m.SignUp })))
 const MoviesPage = lazy(() => import('@/pages/MoviesPage').then(m => ({ default: m.MoviesPage })))
 const ProfilePage = lazy(() => import('@/pages/ProfilePage').then(m => ({ default: m.ProfilePage })))
-const MatchingPage = lazy(() => import('@/pages/MatchingPage').then(m => ({ default: m.MatchingPage })))
+const HomePage = lazy(() => import('@/pages/HomePage').then(m => ({ default: m.HomePage })))
 
 // Page fallback for Suspense
 function PageLoader() {
@@ -107,9 +107,9 @@ function AppContent() {
             )
           }
         >
-          <Route index element={<MoviesPage />} />
+          <Route index element={<HomePage />} />
           <Route path="profile" element={<ProfilePage />} />
-          <Route path="matching" element={<MatchingPage />} />
+          <Route path="search" element={<MoviesPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
