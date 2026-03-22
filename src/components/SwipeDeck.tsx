@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'motion/react'
-import { IconChevronUp, IconStar } from '@tabler/icons-react'
+import { IconChevronUp, IconChevronRight, IconStar } from '@tabler/icons-react'
 import { Card } from '@/components/ui/card'
 import type { TMDBMovie } from '@/lib/tmdb'
 import { getImageUrl } from '@/lib/tmdb'
@@ -8,36 +8,72 @@ import { getImageUrl } from '@/lib/tmdb'
 interface SwipeCardProps {
   movie: TMDBMovie
   onRate: (movie: TMDBMovie, rating: number) => void
-  onSkip: () => void
+  onSkip: (movie: TMDBMovie) => void
+  onWatchLater: (movie: TMDBMovie) => void
   rating: number
   setRating: (r: number) => void
+  onInteract: () => void
 }
 
-function SwipeCard({ movie, onRate, onSkip, rating, setRating }: SwipeCardProps) {
+function SwipeCard({ movie, onRate, onSkip, onWatchLater, rating, setRating, onInteract }: SwipeCardProps) {
   const y = useMotionValue(0)
-  const opacity = useTransform(y, [0, -200], [1, 0])
-  const scale = useTransform(y, [0, -200], [1, 0.9])
+  const x = useMotionValue(0)
+  
+  // Use transforms based on dragging distance
+  const opacity = useTransform(() => {
+    const oy = Math.max(0, 1 - Math.abs(y.get()) / 300)
+    const ox = Math.max(0, 1 - Math.abs(x.get()) / 300)
+    return Math.min(oy, ox)
+  })
+
+  const scale = useTransform(() => {
+    const dist = Math.sqrt(x.get() ** 2 + y.get() ** 2)
+    return Math.max(0.9, 1 - dist / 1500)
+  })
+
+  const [exitDirection, setExitDirection] = useState<'up' | 'right'>('up')
 
   const handleDragEnd = (_: any, info: any) => {
-    if (info.offset.y < -150) {
-      onSkip()
+    const threshold = 120
+    const velocityThreshold = 500
+
+    const isRightSwipe = info.offset.x > threshold || info.velocity.x > velocityThreshold
+    const isUpSwipe = info.offset.y < -threshold || info.velocity.y < -velocityThreshold
+
+    // If swiped right more than up
+    if (isRightSwipe && info.offset.x > Math.abs(info.offset.y)) {
+      setExitDirection('right')
+      // Defer slightly so react state applies for exit
+      requestAnimationFrame(() => onWatchLater(movie))
+    } else if (isUpSwipe && Math.abs(info.offset.y) > info.offset.x) {
+      setExitDirection('up')
+      requestAnimationFrame(() => onSkip(movie))
     }
+    // If not triggered, framer-motion handles snapping back automatically
+    // due to drag snap properties.
   }
 
   const year = movie.release_date ? new Date(movie.release_date).getFullYear() : ''
 
   return (
     <motion.div
-      style={{ y, opacity, scale }}
-      drag="y"
-      dragConstraints={{ top: -300, bottom: 0 }}
+      style={{ y, x, scale, opacity }}
+      drag
+      dragConstraints={{ top: 0, bottom: 0, left: 0, right: 0 }}
+      dragElastic={0.8}
+      onDragStart={onInteract}
       onDragEnd={handleDragEnd}
-      initial={{ scale: 0.9, opacity: 0, y: 50 }}
-      animate={{ scale: 1, opacity: 1, y: 0 }}
-      exit={{ y: -500, opacity: 0, transition: { duration: 0.3 } }}
-      className="absolute inset-0 touch-none"
+      initial={{ scale: 0.95, opacity: 0, y: 50 }}
+      animate={{ scale: 1, opacity: 1, y: 0, x: 0 }}
+      exit={{ 
+        y: exitDirection === 'up' ? -800 : 0, 
+        x: exitDirection === 'right' ? 800 : 0, 
+        opacity: 0, 
+        transition: { duration: 0.3, ease: 'easeOut' } 
+      }}
+      className="absolute inset-0 touch-none flex hover:cursor-grab active:cursor-grabbing"
     >
-      <Card className="h-full w-full overflow-hidden shadow-2xl relative border-white/10 flex flex-col justify-end bg-slate-900 rounded-3xl">
+      <Card className="flex-1 w-full overflow-hidden shadow-2xl relative border-white/10 flex flex-col justify-end bg-slate-900 rounded-3xl group">
         <img 
           src={getImageUrl(movie.poster_path, 'original')} 
           alt={movie.title} 
@@ -47,23 +83,26 @@ function SwipeCard({ movie, onRate, onSkip, rating, setRating }: SwipeCardProps)
         
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent pointer-events-none" />
         
-        <div className="relative z-10 p-6 space-y-6 text-white pb-10">
+        <div className="relative z-10 p-6 space-y-6 text-white pb-10 pointer-events-none">
           <div>
-            <h2 className="text-3xl font-black mt-2 leading-none">{movie.title}</h2>
+            <h2 className="text-3xl font-black mt-2 leading-none pointer-events-auto">{movie.title}</h2>
             <p className="text-slate-300 mt-2 font-medium">{year} • ⭐ {movie.vote_average.toFixed(1)}</p>
             <p className="text-sm text-slate-400 mt-3 line-clamp-3">{movie.overview}</p>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-3 pointer-events-auto">
             <p className="text-xs text-slate-300 font-bold uppercase tracking-widest text-center">Rate this movie</p>
-            <div className="flex justify-between items-center bg-black/40 backdrop-blur-md p-3 rounded-2xl border border-white/10">
+            <div 
+              className="flex justify-between items-center bg-black/40 backdrop-blur-md p-3 rounded-2xl border border-white/10"
+              onPointerDown={(e) => e.stopPropagation()} // Prevent accidental drag triggers
+            >
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
                   key={star}
                   onMouseEnter={() => setRating(star)}
                   onMouseLeave={() => setRating(0)}
                   onClick={() => onRate(movie, star)}
-                  className="transition-transform active:scale-90 p-2"
+                  className="transition-transform active:scale-90 p-2 hover:scale-110"
                 >
                   <IconStar 
                     size={36} 
@@ -84,12 +123,21 @@ function SwipeCard({ movie, onRate, onSkip, rating, setRating }: SwipeCardProps)
 interface SwipeDeckProps {
   movies: TMDBMovie[]
   onRate: (movie: TMDBMovie, rating: number) => void
-  onSkip: () => void
+  onSkip: (movie: TMDBMovie) => void
+  onWatchLater: (movie: TMDBMovie) => void
 }
 
-export function SwipeDeck({ movies, onRate, onSkip }: SwipeDeckProps) {
+export function SwipeDeck({ movies, onRate, onSkip, onWatchLater }: SwipeDeckProps) {
   const [rating, setRating] = useState<number>(0)
   const currentMovie = movies[0]
+  const [hasInteracted, setHasInteracted] = useState(() => localStorage.getItem('hasSwiped') === 'true')
+
+  const handleInteract = () => {
+    if (!hasInteracted) {
+      setHasInteracted(true)
+      localStorage.setItem('hasSwiped', 'true')
+    }
+  }
 
   useEffect(() => {
     setRating(0)
@@ -113,16 +161,22 @@ export function SwipeDeck({ movies, onRate, onSkip }: SwipeDeckProps) {
           <SwipeCard 
             key={currentMovie.id} 
             movie={currentMovie} 
-            onRate={onRate} 
-            onSkip={onSkip}
+            onRate={onRate}
+            onSkip={onSkip} 
+            onWatchLater={onWatchLater}
             rating={rating}
             setRating={setRating}
+            onInteract={handleInteract}
           />
         </AnimatePresence>
       </div>
-      <div className="absolute -bottom-16 w-full flex flex-col items-center gap-1 opacity-50 animate-bounce pointer-events-none text-muted-foreground pb-4">
+      <div className={`absolute -bottom-16 w-full flex flex-col items-center gap-1 opacity-50 pointer-events-none text-muted-foreground pb-4 transition-all duration-1000 ${hasInteracted ? 'opacity-0' : 'animate-bounce'}`}>
         <IconChevronUp size={24} />
         <span className="text-xs uppercase tracking-widest font-semibold">Swipe up to skip</span>
+      </div>
+      <div className={`absolute -right-12 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-50 pointer-events-none text-muted-foreground rotate-90 origin-right transition-all duration-1000 ${hasInteracted ? 'opacity-0' : 'animate-pulse'}`}>
+        <IconChevronRight size={24} />
+        <span className="text-xs uppercase tracking-widest font-semibold">Swipe right for Watch Later</span>
       </div>
     </div>
   )

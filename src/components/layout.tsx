@@ -3,13 +3,13 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { ModeToggle } from '@/components/mode-toggle'
 import { Button } from '@/components/ui/button'
-import { IconHome, IconSearch, IconUser, IconLogout } from '@tabler/icons-react'
+import { IconHome, IconSearch, IconUser, IconUsers, IconLogout } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
 
 const logo = '/android-chrome-192x192.png'
 
 export function Layout() {
-  const { user, signOut } = useAuth()
+  const { user, profile, signOut } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [isScrolled, setIsScrolled] = useState(false)
@@ -24,9 +24,12 @@ export function Layout() {
 
   const navItems = [
     { label: 'Swipe', path: '/', icon: <IconHome className="w-6 h-6" /> },
+    { label: 'Sync', path: '/sync', icon: <IconUsers className="w-6 h-6" /> },
     { label: 'Search', path: '/search', icon: <IconSearch className="w-6 h-6" /> },
     { label: 'Profile', path: '/profile', icon: <IconUser className="w-6 h-6" /> },
   ]
+
+  const username = profile?.username || user?.email || 'Unknown User'
 
   return (
     <div className="min-h-screen bg-background flex flex-col pb-16 md:pb-0">
@@ -56,10 +59,10 @@ export function Layout() {
           </div>
           
           <div className="flex items-center gap-3">
-            <ModeToggle />
             <Button variant="ghost" className="text-sm text-muted-foreground" onClick={() => navigate('/profile')}>
-              {user?.email}
+              @{username}
             </Button>
+            <ModeToggle />
             <Button variant="secondary" onClick={signOut} size="icon" title="Sign Out">
               <IconLogout className="w-5 h-5" />
             </Button>

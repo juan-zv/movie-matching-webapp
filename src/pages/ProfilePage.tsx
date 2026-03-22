@@ -1,9 +1,13 @@
 import { useAuth } from '../contexts/AuthContext'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { IconUser } from '@tabler/icons-react'
+import { Button } from '@/components/ui/button'
+import { IconUser, IconStar, IconClock, IconLogout } from '@tabler/icons-react'
+import { useMovieHistory } from '@/hooks/useMovieHistory'
+import { getImageUrl } from '@/lib/tmdb'
 
 export function ProfilePage() {
-  const { user, profile } = useAuth()
+  const { user, profile, signOut } = useAuth()
+  const { history, watchLater } = useMovieHistory()
 
   // Full name from user metadata if available, otherwise just use parts or fallback
   const fullName = user?.user_metadata?.full_name || user?.user_metadata?.first_name 
@@ -22,20 +26,22 @@ export function ProfilePage() {
     ageRange: profile?.age_range || 'Age not specified',
     email: user?.email || 'user@example.com',
     profilePicUrl: profilePicUrl,
-    topGenres: Array.isArray(profile?.primary_genres) ? profile.primary_genres : [],
-    // Still placeholder for liked history until we have a ratings table
-    likedMoviesHistory: [
-      { id: 1, title: 'Inception', year: '2010', rating: 5 },
-      { id: 2, title: 'The Matrix', year: '1999', rating: 4.5 },
-      { id: 3, title: 'Interstellar', year: '2014', rating: 5 },
-      { id: 4, title: 'Blade Runner 2049', year: '2017', rating: 4 }
-    ]
+    topGenres: Array.isArray(profile?.primary_genres) ? profile.primary_genres : []
   }
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-8">
       {/* Profile Header Sub-section */}
-      <Card>
+      <Card className="relative">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="absolute top-2 right-2 md:hidden text-muted-foreground"
+          onClick={signOut}
+          title="Sign Out"
+        >
+          <IconLogout className="w-5 h-5" />
+        </Button>
         <CardContent className="pt-6 flex flex-col sm:flex-row items-center gap-6">
           <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden bg-muted shrink-0 border-4 border-background shadow-sm flex items-center justify-center">
             {profileInfo.profilePicUrl ? (
@@ -84,26 +90,67 @@ export function ProfilePage() {
       {/* Liked Movies History Sub-section */}
       <Card>
         <CardHeader>
-          <CardTitle>Liked Movies History</CardTitle>
-          <CardDescription>A collection of movies you've highly rated.</CardDescription>
+          <CardTitle>History</CardTitle>
+          <CardDescription>A collection of movies you've recently rated.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {profileInfo.likedMoviesHistory.map((movie) => (
+            {history.filter(m => m.score > 0).length > 0 ? history.filter(m => m.score > 0).map((movie) => (
               <div 
                 key={movie.id} 
-                className="flex flex-col p-4 border rounded-xl bg-card text-card-foreground shadow-sm hover:shadow-md transition-shadow"
+                className="flex flex-col p-4 border rounded-xl bg-card text-card-foreground shadow-sm hover:shadow-md transition-shadow gap-3"
               >
-                <div className="grow">
-                  <h4 className="font-semibold line-clamp-1">{movie.title}</h4>
-                  <p className="text-sm text-muted-foreground">{movie.year}</p>
-                </div>
-                <div className="mt-4 flex items-center gap-1">
-                  <span className="text-yellow-500">★</span>
-                  <span className="font-medium text-sm">{movie.rating}</span>
+                <div className="flex gap-4">
+                  <img src={getImageUrl(movie.poster_path, 'w500')} className="w-16 h-24 object-cover rounded-md" alt={movie.title} />
+                  <div className="grow">
+                    <h4 className="font-semibold line-clamp-2">{movie.title}</h4>
+                    <p className="text-sm text-muted-foreground">{movie.release_date ? new Date(movie.release_date).getFullYear() : ''}</p>
+                    <div className="flex gap-1 mt-2">
+                      {[...Array(5)].map((_, i) => (
+                        <IconStar 
+                          key={i} 
+                          size={16} 
+                          className={i < movie.score ? "text-yellow-500 fill-yellow-500" : "text-muted"} 
+                        />
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
-            ))}
+            )) : (
+              <p className="text-muted-foreground text-sm py-8 col-span-full text-center">Rate some movies to see your history!</p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Watch Later Sub-section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <IconClock className="w-5 h-5" /> 
+            Watch Later
+          </CardTitle>
+          <CardDescription>Movies you saved to watch later.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {watchLater.length > 0 ? watchLater.map((movie) => (
+              <div 
+                key={movie.id} 
+                className="flex flex-col p-4 border rounded-xl bg-card text-card-foreground shadow-sm hover:shadow-md transition-shadow gap-3"
+              >
+                <div className="flex gap-4">
+                  <img src={getImageUrl(movie.poster_path, 'w500')} className="w-16 h-24 object-cover rounded-md" alt={movie.title} />
+                  <div className="grow">
+                    <h4 className="font-semibold line-clamp-2">{movie.title}</h4>
+                    <p className="text-sm text-muted-foreground">{movie.release_date ? new Date(movie.release_date).getFullYear() : ''}</p>
+                  </div>
+                </div>
+              </div>
+            )) : (
+              <p className="text-muted-foreground text-sm py-8 col-span-full text-center">Swipe right to save movies here!</p>
+            )}
           </div>
         </CardContent>
       </Card>
