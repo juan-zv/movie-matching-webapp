@@ -32,7 +32,7 @@ export function Layout() {
   const username = profile?.username || user?.email || 'Unknown User'
 
   return (
-    <div className="min-h-screen bg-background flex flex-col pb-16 md:pb-0">
+    <div className="min-h-screen bg-background flex flex-col pb-16 md:pb-0 overflow-x-hidden">
       {/* Top Navigation for Desktop */}
       <nav className="hidden md:block border-b bg-card">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4">

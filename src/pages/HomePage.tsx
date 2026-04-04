@@ -46,8 +46,8 @@ export function HomePage() {
   }
 
   return (
-    <div className="w-full max-w-md mx-auto min-h-[85vh] flex flex-col pt-4">
-      <div className="flex-1 flex flex-col px-4 pb-20">
+    <div className="w-full min-h-[85vh] flex flex-col pt-4 overflow-x-hidden">
+      <div className="w-full max-w-md mx-auto flex-1 flex flex-col px-4 pb-20">
         {isLoading && movieQueue.length === 0 ? (
           <div className="flex-1 flex items-center justify-center">
             <p className="text-muted-foreground animate-pulse text-lg">Loading movies...</p>

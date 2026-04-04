@@ -155,7 +155,7 @@ export function SwipeDeck({ movies, onRate, onSkip, onWatchLater }: SwipeDeckPro
   }
 
   return (
-    <div className="w-full max-w-md mx-auto aspect-[2/3] relative flex flex-col">
+    <div className="w-full max-w-sm sm:max-w-md mx-auto aspect-[2/3] max-h-[70vh] sm:max-h-[75vh] relative flex flex-col">
       <div className="flex-1 relative">
         <AnimatePresence>
           <SwipeCard 
