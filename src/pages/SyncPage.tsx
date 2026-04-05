@@ -287,31 +287,35 @@ export function SyncPage() {
     }
   }
 
+  // When the room transitions to swiping, EVERYONE calculates the shared 
+  // deck using the identical deterministic math!
+  useEffect(() => {
+    if (view === 'swiping' && deck.length === 0 && participants.length > 0) {
+      const loadSharedDeck = async () => {
+        const combinedWeights: Record<string, number> = {}
+        participants.forEach((p) => {
+          const weights = p.profiles?.genre_weights || {}
+          Object.entries(weights).forEach(([genreId, weight]) => {
+            combinedWeights[genreId] = (combinedWeights[genreId] || 0) + (weight as number)
+          })
+        })
+
+        const topSharedGenres = Object.entries(combinedWeights)
+          .sort(([, a], [, b]) => b - a)
+          .slice(0, 3)
+          .map(([id]) => Number(id))
+
+        const APIResponse = await fetchDiscoverMovies(topSharedGenres, 1)
+        setDeck(APIResponse.results)
+      }
+      loadSharedDeck()
+    }
+  }, [view, deck.length, participants])
+
   const startSwiping = async () => {
     if (!session || session.created_by !== user?.id) return
     setLoading(true)
     try {
-      // 1. Calculate Group Taste Profile (The Centroid)
-      const combinedWeights: Record<string, number> = {}
-      participants.forEach((p) => {
-        const weights = p.profiles?.genre_weights || {}
-        Object.entries(weights).forEach(([genreId, weight]) => {
-          combinedWeights[genreId] = (combinedWeights[genreId] || 0) + (weight as number)
-        })
-      })
-
-      // 2. Extract Top 3 Shared Genres
-      const topSharedGenres = Object.entries(combinedWeights)
-        .sort(([, a], [, b]) => b - a)
-        .slice(0, 3)
-        .map(([id]) => Number(id))
-
-      // 3. Fetch the shared Deck (so everyone sees the same movies)
-      // Because we sort_by popularity.desc, fetching the same genres will yield the same movies!
-      const APIResponse = await fetchDiscoverMovies(topSharedGenres, 1)
-      setDeck(APIResponse.results)
-
-      // 4. Update the room to 'swiping' so everyone's screen transitions
       const { error } = await supabase
         .from('sync_sessions')
         .update({ status: 'swiping' })
