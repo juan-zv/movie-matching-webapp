@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
 import { SwipeDeck } from '@/components/SwipeDeck'
-import { usePopularMovies } from '@/hooks/useMovies'
+import { useRecommendedMovies } from '@/hooks/useMovies'
 import { useMovieHistory } from '@/hooks/useMovieHistory'
 import { type TMDBMovie } from '@/lib/tmdb'
 
 export function HomePage() {
-  const { data, isLoading, fetchNextPage, hasNextPage } = usePopularMovies()
+  const { data, isLoading, fetchNextPage, hasNextPage } = useRecommendedMovies()
   const { history, addToHistory, watchLater, addToWatchLater } = useMovieHistory()
   const [movieQueue, setMovieQueue] = useState<TMDBMovie[]>([])
 

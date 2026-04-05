@@ -13,6 +13,7 @@ const SignUp = lazy(() => import('@/pages/SignUp').then(m => ({ default: m.SignU
 const MoviesPage = lazy(() => import('@/pages/MoviesPage').then(m => ({ default: m.MoviesPage })))
 const ProfilePage = lazy(() => import('@/pages/ProfilePage').then(m => ({ default: m.ProfilePage })))
 const HomePage = lazy(() => import('@/pages/HomePage').then(m => ({ default: m.HomePage })))
+const LandingPage = lazy(() => import('@/pages/LandingPage').then(m => ({ default: m.LandingPage })))
 const SyncPage = lazy(() => import('@/pages/SyncPage').then(m => ({ default: m.SyncPage })))
 
 // Page fallback for Suspense
@@ -100,7 +101,7 @@ function AppContent() {
           path="/"
           element={
             !user ? (
-              <Navigate to="/login" replace />
+              <LandingPage />
             ) : !profile?.onboarding_completed ? (
               <Navigate to="/signup" replace />
             ) : (

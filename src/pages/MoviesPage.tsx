@@ -4,8 +4,8 @@ import { MovieCardSkeleton } from '@/components/skeletons/MovieCardSkeleton'
 import { Progress } from '@/components/ui/progress'
 import { Input } from '@/components/ui/input'
 import { usePopularMovies, useSearchMovies } from '@/hooks/useMovies'
+import { useMovieHistory } from '@/hooks/useMovieHistory'
 import { useDebounce } from '@/hooks/useDebounce'
-import type { TMDBMovie } from '@/lib/tmdb'
 
 export function MoviesPage() {
   const [searchTerm, setSearchTerm] = useState('')
@@ -18,8 +18,7 @@ export function MoviesPage() {
   const currentQuery = isSearching ? searchQuery : popularQuery
   const { data, isLoading, isError, error, fetchNextPage, hasNextPage, isFetchingNextPage } = currentQuery
 
-  const [ratings, setRatings] = useState<Record<number, number>>({})
-  const [fourStarMovies, setFourStarMovies] = useState<TMDBMovie[]>([])
+  const { history, addToHistory } = useMovieHistory()
 
   const observerRef = useRef<IntersectionObserver | null>(null)
   
@@ -40,23 +39,10 @@ export function MoviesPage() {
   const allMovies = data?.pages.flatMap((page) => page.results) || []
 
   const handleRate = (movieId: number, rating: number) => {
-    setRatings((prev) => {
-      const newRatings = { ...prev, [movieId]: rating }
-      
-      const movie = allMovies.find((m) => m.id === movieId)
-      if (rating === 4 && movie) {
-        setFourStarMovies((prevM) => {
-          if (!prevM.find((m) => m.id === movieId)) {
-            return [...prevM, movie]
-          }
-          return prevM
-        })
-      } else {
-        setFourStarMovies((prevM) => prevM.filter((m) => m.id !== movieId))
-      }
-      
-      return newRatings
-    })
+    const movie = allMovies.find((m) => m.id === movieId)
+    if (movie) {
+      addToHistory(movie, rating)
+    }
   }
 
   if (isLoading && !data) {
@@ -105,33 +91,18 @@ export function MoviesPage() {
         </div>
       )}
 
-      {fourStarMovies.length > 0 && !isSearching && (
-        <div className="rounded-lg bg-yellow-50 p-4">
-          <h2 className="mb-2 font-semibold text-yellow-800">
-            ⭐ Your 4-Star Rated Movies ({fourStarMovies.length})
-          </h2>
-          <div className="flex flex-wrap gap-2">
-            {fourStarMovies.map((movie) => (
-              <span
-                key={movie.id}
-                className="rounded-full bg-yellow-200 px-3 py-1 text-sm text-yellow-800"
-              >
-                {movie.title}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {allMovies.map((movie, idx) => (
-          <MovieCard
-            key={`${movie.id}-${idx}`}
-            movie={movie}
-            userRating={ratings[movie.id] ?? null}
-            onRate={handleRate}
-          />
-        ))}
+        {allMovies.map((movie, idx) => {
+          const userRating = history.find(h => h.id === movie.id)?.score ?? null
+          return (
+            <MovieCard
+              key={`${movie.id}-${idx}`}
+              movie={movie}
+              userRating={userRating}
+              onRate={handleRate}
+            />
+          )
+        })}
       </div>
       
       {/* Infinite scroll sentinel */}

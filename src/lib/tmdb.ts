@@ -42,6 +42,19 @@ export const fetchPopularMovies = async (page: number = 1): Promise<TMDBResponse
   return response.json()
 }
 
+export const fetchTopRatedMovies = async (page: number = 1): Promise<TMDBResponse> => {
+  const response = await fetch(`${TMDB_BASE_URL}/movie/top_rated?language=en-US&page=${page}&region=US`, {
+    method: "GET",
+    headers: getHeaders()
+  })
+  
+  if (!response.ok) {
+    throw new Error("Failed to fetch top rated movies")
+  }
+  
+  return response.json()
+}
+
 export const searchMovies = async (query: string, page: number = 1): Promise<TMDBResponse> => {
   const response = await fetch(
     `${TMDB_BASE_URL}/search/movie?query=${encodeURIComponent(query)}&include_adult=false&language=en-US&page=${page}`,
@@ -53,6 +66,20 @@ export const searchMovies = async (query: string, page: number = 1): Promise<TMD
 
   if (!response.ok) {
     throw new Error("Failed to search movies")
+  }
+
+  return response.json()
+}
+
+export const fetchDiscoverMovies = async (genreIds: number[], page: number = 1): Promise<TMDBResponse> => {
+  const genreQuery = genreIds.length > 0 ? `&with_genres=${genreIds.join(',')}` : '';
+  const response = await fetch(`${TMDB_BASE_URL}/discover/movie?language=en-US&sort_by=popularity.desc&page=${page}${genreQuery}`, {
+    method: "GET",
+    headers: getHeaders()
+  })
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch discover movies")
   }
 
   return response.json()

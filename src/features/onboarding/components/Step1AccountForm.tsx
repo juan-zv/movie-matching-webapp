@@ -23,11 +23,10 @@ const step1Schema = z.object({
 type Step1Data = z.infer<typeof step1Schema>
 
 interface Step1AccountFormProps {
-  onSuccess: (msg: string) => void;
   onSwitchToLogin: () => void;
 }
 
-export function Step1AccountForm({ onSuccess, onSwitchToLogin }: Step1AccountFormProps) {
+export function Step1AccountForm({ onSwitchToLogin }: Step1AccountFormProps) {
   const { signUp } = useAuth()
   const [loading, setLoading] = useState(false)
   const form = useForm<Step1Data>({ resolver: zodResolver(step1Schema) })
@@ -44,10 +43,10 @@ export function Step1AccountForm({ onSuccess, onSwitchToLogin }: Step1AccountFor
     
     if (error) {
       form.setError('root', { message: error.message })
-    } else {
-      onSuccess("Account created successfully! Please check your email to verify your account. Once verified, refresh this page or sign in.")
+      setLoading(false)
     }
-    setLoading(false)
+    // We do not set loading to false on success because the AuthContext listener
+    // will detect the new active session (email confirmation disabled) and unmount this form.
   }
 
   return (

@@ -11,7 +11,7 @@ export interface Profile {
   onboarding_completed: boolean
   onboarding_step: number
   primary_genres: string[] | null
-  genre_weights: any | null
+  genre_weights: Record<string, number> | null
 }
 
 interface AuthContextType {

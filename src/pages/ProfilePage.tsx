@@ -1,6 +1,7 @@
 import { useAuth } from '../contexts/AuthContext'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { IconUser, IconStar, IconClock, IconLogout } from '@tabler/icons-react'
 import { useMovieHistory } from '@/hooks/useMovieHistory'
 import { getImageUrl } from '@/lib/tmdb'
@@ -94,10 +95,11 @@ export function ProfilePage() {
           <CardDescription>A collection of movies you've recently rated.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {history.filter(m => m.score > 0).length > 0 ? history.filter(m => m.score > 0).map((movie) => (
-              <div 
-                key={movie.id} 
+          <ScrollArea className="h-[32rem] pr-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {history.filter(m => m.score > 0).length > 0 ? history.filter(m => m.score > 0).map((movie) => (
+                <div 
+                  key={movie.id} 
                 className="flex flex-col p-4 border rounded-xl bg-card text-card-foreground shadow-sm hover:shadow-md transition-shadow gap-3"
               >
                 <div className="flex gap-4">
@@ -120,7 +122,8 @@ export function ProfilePage() {
             )) : (
               <p className="text-muted-foreground text-sm py-8 col-span-full text-center">Rate some movies to see your history!</p>
             )}
-          </div>
+            </div>
+          </ScrollArea>
         </CardContent>
       </Card>
 
@@ -134,10 +137,11 @@ export function ProfilePage() {
           <CardDescription>Movies you saved to watch later.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {watchLater.length > 0 ? watchLater.map((movie) => (
-              <div 
-                key={movie.id} 
+          <ScrollArea className="h-[32rem] pr-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {watchLater.length > 0 ? watchLater.map((movie) => (
+                <div 
+                  key={movie.id} 
                 className="flex flex-col p-4 border rounded-xl bg-card text-card-foreground shadow-sm hover:shadow-md transition-shadow gap-3"
               >
                 <div className="flex gap-4">
@@ -151,7 +155,8 @@ export function ProfilePage() {
             )) : (
               <p className="text-muted-foreground text-sm py-8 col-span-full text-center">Swipe right to save movies here!</p>
             )}
-          </div>
+            </div>
+          </ScrollArea>
         </CardContent>
       </Card>
     </div>
