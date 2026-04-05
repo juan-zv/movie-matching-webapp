@@ -106,14 +106,35 @@ export function SyncPage() {
   useEffect(() => {
     if (!session?.id) return
 
-    // Fetch initial participants
     const fetchParticipants = async () => {
-      const { data } = await supabase
+      // 1. Fetch participants
+      const { data: parts } = await supabase
         .from('session_participants')
-        .select('user_id, joined_at, profiles(genre_weights)')
+        .select('user_id, joined_at')
         .eq('session_id', session.id)
       
-      if (data) setParticipants(data)
+      if (parts && parts.length > 0) {
+        // 2. Fetch their profiles separately since both reference auth.users
+        const userIds = parts.map(p => p.user_id)
+        const { data: profs } = await supabase
+          .from('profiles')
+          .select('user_id, genre_weights')
+          .in('user_id', userIds)
+
+        const profMap: Record<string, any> = {}
+        if (profs) {
+          profs.forEach(pr => { profMap[pr.user_id] = pr })
+        }
+
+        // 3. Merge them together for the state
+        const merged = parts.map(p => ({
+          ...p,
+          profiles: profMap[p.user_id] || null
+        }))
+        setParticipants(merged)
+      } else {
+        setParticipants([])
+      }
     }
     fetchParticipants()
 
@@ -235,7 +256,7 @@ export function SyncPage() {
         .from('sync_sessions')
         .select('*')
         .eq('short_code', joinCode.toUpperCase())
-        .single()
+        .maybeSingle()
 
       if (sessionError || !foundSession) throw new Error('Room not found or invalid code.')
 
