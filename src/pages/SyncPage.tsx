@@ -426,9 +426,10 @@ export function SyncPage() {
                                         await supabase.from('movies').upsert({
                                             tmdb_id: movie.id,
                                             title: movie.title,
-                                            poster_url: movie.poster_path,
-                                            summary: movie.overview,
-                                            genre_ids: movie.genre_ids
+                                            poster_path: movie.poster_path,
+                                            overview: movie.overview,
+                                            genre_ids: movie.genre_ids,
+                                            release_date: movie.release_date || null
                                         }, { onConflict: 'tmdb_id' })
 
                                         await supabase.from('session_swipes').insert({
@@ -444,9 +445,10 @@ export function SyncPage() {
                                         await supabase.from('movies').upsert({
                                             tmdb_id: movie.id,
                                             title: movie.title,
-                                            poster_url: movie.poster_path,
-                                            summary: movie.overview,
-                                            genre_ids: movie.genre_ids
+                                            poster_path: movie.poster_path,
+                                            overview: movie.overview,
+                                            genre_ids: movie.genre_ids,
+                                            release_date: movie.release_date || null
                                         }, { onConflict: 'tmdb_id' })
 
                                         await supabase.from('session_swipes').insert({
