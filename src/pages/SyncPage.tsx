@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -94,6 +94,12 @@ export function SyncPage() {
   const [swipedMovieIds, setSwipedMovieIds] = useState<Set<number>>(new Set())
   const [matchFound, setMatchFound] = useState<TMDBMovie | null>(null)
 
+  // Realtime state refs to avoid effect re-running
+  const deckRef = useRef(deck)
+  deckRef.current = deck
+  const participantsRef = useRef(participants)
+  participantsRef.current = participants
+
   // Clean up function to exit session
   const exitSession = () => {
     setView('lobby')
@@ -183,9 +189,11 @@ export function SyncPage() {
             .eq('action', 'save')
             
           // If the count of 'save' equals the room size, IT IS A MATCH!
-          if (count === participants.length && count > 0) {
+          const currentParticipants = participantsRef.current
+          const currentDeck = deckRef.current
+          if (count === currentParticipants.length && count > 0) {
             // Find the movie object in our current deck 
-            const winningMovie = deck.find(m => m.id === payload.new.tmdb_id)
+            const winningMovie = currentDeck.find(m => m.id === payload.new.tmdb_id)
             if (winningMovie) {
                setMatchFound(winningMovie)
                setView('matched')
@@ -208,7 +216,7 @@ export function SyncPage() {
       supabase.removeChannel(sessionSub)
       supabase.removeChannel(matchSub)
     }
-  }, [session?.id, participants.length, deck, user?.id])
+  }, [session?.id, user?.id])
 
   const generateShortCode = () => {
     return Math.random().toString(36).substring(2, 8).toUpperCase()
