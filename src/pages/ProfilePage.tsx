@@ -1,10 +1,9 @@
 import { useState, useMemo } from 'react'
-import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { IconUser, IconStar, IconClock, IconLogout, IconFilter, IconCalendar, IconCheck } from '@tabler/icons-react'
+import { IconUser, IconStar, IconClock, IconLogout, IconFilter, IconCalendar } from '@tabler/icons-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { useMovieHistory } from '@/hooks/useMovieHistory'
 import { getImageUrl, GENRES } from '@/lib/tmdb'
@@ -197,7 +196,7 @@ export function ProfilePage() {
                     contentStyle={{ borderRadius: '8px', border: '1px solid var(--border)', backgroundColor: 'var(--background)' }}
                   />
                   <Bar dataKey="weight" radius={[4, 4, 0, 0]}>
-                    {genreChartData.map((entry, index) => (
+                    {genreChartData.map((_, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Bar>
