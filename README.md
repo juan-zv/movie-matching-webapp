@@ -1,41 +1,43 @@
 # Movie Matching Webapp
 
-Movie Matching is a React + TypeScript app for browsing the TMDB 5000 dataset, rating movies, and managing user access with Supabase authentication.
+> **Attribution Notice:** This product uses the [TMDB API](https://www.themoviedb.org/) but is not endorsed or certified by TMDB.
+
+Movie Matching is a React + TypeScript app for browsing movies, rating titles, and managing user access with Supabase authentication.
 
 [A React + TypeScript web application that collects user movie ratings to generate personalized, algorithm-driven recommendations for films they haven't seen, while also supporting pair-based matching that computes joint preference profiles to suggest movies optimized for two users watching together.]
 
 ## Tech Stack
 
-- React 19
-- TypeScript 5.9
-- Vite 7
-- Tailwind CSS 4
-- React Router DOM
-- React Query (@tanstack/react-query)
-- Framer Motion (motion/react)
-- shadcn/ui + Radix UI primitives
-- Supabase (Auth)
-- pnpm
+- [React 19](https://react.dev/)
+- [TypeScript 5.9](https://www.typescriptlang.org/)
+- [Vite 7](https://vitejs.dev/)
+- [Tailwind CSS 4](https://tailwindcss.com/)
+- [React Router DOM](https://reactrouter.com/)
+- [React Query (@tanstack/react-query)](https://tanstack.com/query/latest)
+- [Framer Motion (motion/react)](https://motion.dev/)
+- [shadcn/ui](https://ui.shadcn.com/) + [Base UI](https://base-ui.com/)
+- [Supabase (Auth)](https://supabase.com/)
+- [pnpm](https://pnpm.io/)
 
 ### Frontend
-- **React 19** - UI library with hooks-based architecture
-- **TypeScript 5.9** - Type-safe JavaScript
-- **Vite 7** - Fast build tool and dev server
-- **Tailwind CSS 4** - Utility-first CSS framework
-- **Framer Motion** - Handling complex swipe and drag animations on cards
+- **[React 19](https://react.dev/)** - UI library with hooks-based architecture
+- **[TypeScript 5.9](https://www.typescriptlang.org/)** - Type-safe JavaScript
+- **[Vite 7](https://vitejs.dev/)** - Fast build tool and dev server
+- **[Tailwind CSS 4](https://tailwindcss.com/)** - Utility-first CSS framework
+- **[Framer Motion](https://motion.dev/)** - Handling complex swipe and drag animations on cards
 
 ### UI Components
-- **shadcn/ui** - Accessible, customizable component library built on:
-  - Radix UI primitives
+- **[shadcn/ui](https://ui.shadcn.com/)** - Accessible, customizable component library built on:
+  - [Base UI](https://base-ui.com/)
   - Class Variance Authority (CVA) for variant styling
 - Components implemented: Alert, Button, ButtonGroup, Card, DropdownMenu, Input, Label, Progress, Separator, Skeleton
 
 ### Data & State
-- **React Query** - Used for infinitely fetching and caching TMDB movie data and searches.
-- **Zod & React Hook Form** - Powering validation and complex onboarding steps.
+- **[React Query](https://tanstack.com/query/latest)** - Used for infinitely fetching and caching TMDB movie data and searches.
+- **[Zod](https://zod.dev/) & [React Hook Form](https://react-hook-form.com/)** - Powering validation and complex onboarding steps.
 
 ### Backend (Supabase)
-- **Supabase Auth** - Handling user registration and session cookies/JWT logic.
+- **[Supabase Auth](https://supabase.com/docs/guides/auth)** - Handling user registration and session cookies/JWT logic.
 - **Supabase Database (PostgreSQL)** - Currently interacting with:
   - `profiles` table: 
     - Holds application-specific user metadata tied to the Auth UID (`user_id`, `username`, `age_range`, `onboarding_completed`, `onboarding_step`, `primary_genres`, `genre_weights`).
@@ -47,16 +49,17 @@ Movie Matching is a React + TypeScript app for browsing the TMDB 5000 dataset, r
 
 ## Current Implementations
 
-### Authentication and Routing
+### Routing Architecture & Pages
 
-- Email/password login and sign up flows with Supabase.
-- Session-aware route protection for:
-  - `/login`
-  - `/signup`
-  - `/`
-  - `/profile`
-- Shared auth state and actions through `AuthContext`.
-- Initial loading screen with progress indicator while auth state is restored.
+The application utilizes `react-router-dom` with a `Suspense` wrapper for lazy-loading page chunks. Routing logic integrates tightly with `AuthContext` to enforce session restrictions and onboarding completion guard rails.
+
+- **`/` (Root)** - Evaluates auth state. Renders `LandingPage` for unauthenticated traffic, redirects to `/signup` if user onboarding is incomplete. When fully authenticated, renders the `Layout` wrapper resolving `HomePage`. 
+  - **`HomePage` (`/`)**: Displays the `SwipeDeck`—a Framer Motion-powered interactive discovery tool fetching TMDB data infinitely so users can drag, skip, or save movies to a Watch Later queue.
+- **`/login`** - Authenticates returning users via Supabase Auth. Seamlessly redirects to the signup flow if the user login succeeds but the `profiles.onboarding_completed` flag evaluates as falsy.
+- **`/signup`** - Provides the user registration entry alongside a multi-step onboarding wizard. Built with `Zod` and `react-hook-form` to initialize `profiles` table records (capturing age range, username, and baseline algorithmic genre weights).
+- **`/search`** (`MoviesPage`) - An infinite scrolling movie index leveraging React Query (`useInfiniteQuery`) and an Intersection Observer. Features debounced input processing to prevent TMDB API rate-limiting.
+- **`/sync`** (`SyncPage`) - A collaborative group-matching engine. Uses Supabase Realtime Channels (`pg_changes` and broadcast events) to synchronize participants in a lobby, compute a unified movie deck utilizing aggregated profile preferences, and deterministically track when all room users 'save' the same movie context in real-time.
+- **`/profile`** (`ProfilePage`) - Visualizes synced Supabase profile metadata along with aggregating local application states to render user rating history and Watch Later queues arrays.
 
 ### Theme System
 
@@ -90,6 +93,65 @@ Movie Matching is a React + TypeScript app for browsing the TMDB 5000 dataset, r
 - Dedicated `/profile` route.
 - Profile card and liked-movies history UI.
 - Currently uses placeholder profile data structure for demo purposes.
+
+## Data Flow & Architecture
+
+The application blends client-side API fetching with real-time cloud database synchronization to deliver a fast, collaborative experience.
+
+1. **Data Retrieval (TMDB & React Query)**: The client directly queries the TMDB API for movie lists, recommendations, and search results. Responses are paginated and aggressively cached in the browser using React Query, ensuring smooth dragging/swiping UI with minimal latency.
+2. **Local State**: Solo user interactions (like 5-star ratings or "Watch Later" queues) are initially managed via custom hooks (`useMovieHistory`) and safely persisted to `localStorage`.
+3. **Collaborative Matching (Supabase Realtime)**: When users enter the "Host a Night" flow (`/sync`), the app relies on Supabase for distributed state:
+   - **Profiles & Identity**: `Supabase Auth` manages JWT sessions, tracking user IDs against a secure `profiles` relational table containing genre preferences.
+   - **Realtime Sessions**: The `sync_sessions` and `session_participants` tables track the lobby logic. Supabase Realtime Channels broadcast status updates instantly.
+   - **Swipe Tallying**: As users swipe, the client upserts minimum required metadata to a local `movies` table (to satisfy foreign keys) and records the action in `session_swipes`. A real-time listener alerts the client when all participants have collectively "saved" the same movie.
+
+![Supabase Database Schema](public/supabase-schema.jpg)
+
+### Data Dictionary
+
+*Note: References to TMDB refer to The Movie Database external IDs.*
+
+**`profiles` (Primary user metadata)**
+- `user_id` *(uuid, primary key, maps to auth.users)*
+- `username` *(text)*
+- `age_range` *(text)*
+- `avatar_url` *(text - object path to the Supabase storage `pictures` bucket)*
+- `onboarding_step` *(integer)*
+- `onboarding_completed` *(boolean)*
+- `primary_genres` *(text array - string descriptors of preferred genres)*
+- `genre_weights` *(jsonb - mapping of TMDB genre IDs to weighted interaction scores)*
+
+**`movies` (Cached TMDB metadata to satisfy foreign keys)**
+- `tmdb_id` *(integer, primary key)*
+- `title` *(text)*
+- `poster_path` *(text)*
+- `overview` *(text)*
+- `genre_ids` *(integer array)*
+- `release_date` *(date)*
+
+**`user_interactions` (Historical ratings & actions)**
+- `user_id` *(uuid, foreign key to profiles)*
+- `tmdb_id` *(integer, foreign key to movies)*
+- `rating` *(integer null - 1 through 5 star rating if action_type is rate)*
+- `action_type` *(text - e.g., 'rate', 'watch_later')*
+
+**`sync_sessions` (Lobbies for pair matching)**
+- `id` *(uuid, primary key)*
+- `short_code` *(text - 6-character room code)*
+- `created_by` *(uuid, foreign key to profiles)*
+- `status` *(text - 'waiting' | 'swiping' | 'matched')*
+- `matched_movie_id` *(integer null, foreign key to movies - populated upon match)*
+
+**`session_participants` (Users inside a lobby)**
+- `session_id` *(uuid, foreign key to sync_sessions)*
+- `user_id` *(uuid, foreign key to profiles)*
+- `joined_at` *(timestampz)*
+
+**`session_swipes` (Individual match decisions inside a lobby)**
+- `session_id` *(uuid, foreign key to sync_sessions)*
+- `user_id` *(uuid, foreign key to profiles)*
+- `tmdb_id` *(integer, foreign key to movies)*
+- `action` *(text - 'save' | 'discard')*
 
 ## Project Structure
 
@@ -163,3 +225,7 @@ pnpm lint     # Run ESLint
 
 - Ratings history and Watch Later data are currently tracked client-side (`localStorage`) and through React Query cache.
 - True database syncing for movies and recommendation/pair-matching backend logic are ongoing implementations in progress.
+
+---
+
+> **Attribution Notice:** This product uses the [TMDB API](https://www.themoviedb.org/) but is not endorsed or certified by TMDB.

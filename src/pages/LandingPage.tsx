@@ -62,6 +62,10 @@ export function LandingPage() {
           </Button>
         </div>
         
+        {/* Footer Attribution */}
+        <div className="absolute bottom-4 center w-full flex justify-center text-xs text-muted-foreground/60 md:justify-end md:right-6 md:w-auto pointer-events-none">
+          <p>This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
+        </div>
       </div>
     </div>
   )

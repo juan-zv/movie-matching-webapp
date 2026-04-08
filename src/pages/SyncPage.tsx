@@ -53,6 +53,11 @@ function SyncSwipeCard({ movie, onSave, onDiscard }: { movie: TMDBMovie, onSave:
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent pointer-events-none" />
         
+        {/* TMDB Watermark */}
+        <div className="absolute top-4 right-4 opacity-50 pointer-events-none z-10 w-24">
+          <img src="/primary-long-blue-tmdb.svg" alt="TMDB Logo" className="w-full h-auto drop-shadow-md" draggable="false" />
+        </div>
+
         <div className="relative z-10 p-6 space-y-4 text-white pointer-events-none">
           <div>
             <h2 className="text-3xl font-black mt-2 leading-none">{movie.title}</h2>
@@ -511,12 +516,10 @@ export function SyncPage() {
       <div className="flex-1 flex flex-col px-4 justify-center space-y-6">
         
         {/* Create Room Card */}
-        <Card className="w-full border-t-4 border-t-primary shadow-lg overflow-hidden relative">
-          <div className="absolute top-0 right-0 p-4 opacity-5">
-            <IconMovie size={120} />
-          </div>
+        <Card className="w-full bg-muted/30">
           <CardContent className="pt-8 space-y-4 relative z-10">
             <div className="text-center space-y-2">
+              <IconMovie className="mx-auto" size={50} />
               <h3 className="text-2xl font-bold tracking-tight">Host a Night</h3>
               <p className="text-muted-foreground text-sm">Create a group session. Everyone swipes on the same deck until you find a match.</p>
             </div>

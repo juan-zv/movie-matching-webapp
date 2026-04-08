@@ -70,6 +70,12 @@ export function MoviesPage() {
 
   return (
     <div className="space-y-8 pb-24">
+      {/* TMDB Header Attribution */}
+      <div className="text-center text-xs text-muted-foreground/60 pointer-events-none">
+        <p>Attribution Notice: This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
+        <img src="/primary-long-blue-tmdb.svg" alt="TMDB Logo" className="h-4 mx-auto mt-2 opacity-50" />
+      </div>
+
       <div className="relative max-w-xl mx-auto">
         <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
           <svg className="w-5 h-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

@@ -82,6 +82,11 @@ function SwipeCard({ movie, onRate, onSkip, onWatchLater, rating, setRating, onI
         />
         
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent pointer-events-none" />
+
+        {/* TMDB Watermark */}
+        <div className="absolute top-4 right-4 opacity-50 pointer-events-none w-24 z-10">
+          <img src="/primary-long-blue-tmdb.svg" alt="TMDB Logo" className="w-full h-auto drop-shadow-md" draggable="false" />
+        </div>
         
         <div className="relative z-10 p-6 space-y-6 text-white pb-10 pointer-events-none">
           <div>

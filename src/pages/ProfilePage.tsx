@@ -159,6 +159,11 @@ export function ProfilePage() {
           </ScrollArea>
         </CardContent>
       </Card>
+
+      <div className="text-center text-xs text-muted-foreground/60 pb-8 pointer-events-none">
+        <p>Attribution Notice: This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
+        <img src="/primary-long-blue-tmdb.svg" alt="TMDB Logo" className="h-4 mx-auto mt-2 opacity-50" />
+      </div>
     </div>
   )
 }
