@@ -78,7 +78,7 @@ export function ProfilePage() {
     : 'Unknown User'
 
   // Safely parse primary_genres if it's an array
-  let profilePicUrl = profile?.avatarl_url || null;
+  let profilePicUrl = profile?.avatar_url || profile?.avatarl_url || null;
   // If it's not a full URL (like an http prefix), assume it's just the filename in the bucket
   if (profilePicUrl && !profilePicUrl.startsWith('http')) {
     profilePicUrl = `https://imqqdsjzwxmevdxacnok.supabase.co/storage/v1/object/public/pictures/${profilePicUrl}`;

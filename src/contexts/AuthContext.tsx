@@ -7,7 +7,8 @@ export interface Profile {
   created_at: string
   username: string | null
   age_range: string | null
-  avatarl_url: string | null
+  avatar_url?: string | null
+  avatarl_url?: string | null
   onboarding_completed: boolean
   onboarding_step: number
   primary_genres: string[] | null
@@ -34,9 +35,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   const fetchProfile = async (userId: string) => {
-    const { data } = await supabase.from('profiles').select('*').eq('user_id', userId).single()
-    if (data) {
-      setProfile(data)
+    try {
+      const { data, error } = await supabase.from('profiles').select('*').eq('user_id', userId).single()
+      if (!error && data) {
+        setProfile(data)
+      }
+    } catch (err) {
+      console.error('Error fetching user profile:', err)
     }
   }
 
@@ -47,18 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        fetchProfile(session.user.id).finally(() => setLoading(false))
-      } else {
-        setLoading(false)
-      }
-    })
-
-    // Listen for auth changes
+    // Listen for auth changes (automatically fires INITIAL_SESSION on mount)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
       setUser(session?.user ?? null)
